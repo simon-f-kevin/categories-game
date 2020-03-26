@@ -8,7 +8,7 @@ from kivy.clock import Clock
 # from kivy.animation import Animation
 
 import random
-# import time
+import time
 
 
 Builder.load_string('''
@@ -42,12 +42,18 @@ class StartScreen(GridLayout):
         print(result)
         return result
 
-    def letter_button_press(self, event):
+    def start_timer(self, *args):
         random_letter = self._get_letter()
         self.letter_label.text = random_letter
+        self.timer = Clock.schedule_interval(self.clock_callback, 1)
 
     def start_timer_button_press(self, event):
-        self.timer = Clock.schedule_interval(self.clock_callback, 1)
+        if event.text == 'Start':
+            Clock.schedule_once(self.start_timer, 3)
+            event.text = 'Stop'
+        elif event.text == 'Stop':
+            self.reset_clock()
+            event.text = 'Start'
 
     def clock_callback(self, *args):
         self.seconds -= 1
@@ -56,24 +62,30 @@ class StartScreen(GridLayout):
             val = '0' + str(val)
         if self.seconds == 0:
             self.timer_label.text = 'Time out!'
-            self.timer.cancel()
-        self.timer_label.text = '00:{}:00'.format(val)
+        self.timer_label.text = '00:00:{}'.format(val)
+
+    def reset_clock(self):
+        self.timer.cancel()
+        self.seconds = 60
+        self.timer_label.text = '00:01:00'
+        self.letter_label.text = 'Press Start for a random letter'
 
     def display(self):
         box = BoxLayout(orientation='vertical')
-        self.letter_label = l_label = Label(text='A', size_hint_y=(.5, .5))
+        self.letter_label = l_label = Label(
+            text='Press Start for a random letter', size_hint_y=(.5, .5))
         box.add_widget(l_label)
-        letter_button = Button(text='Press for a random letter',
-                               background_color=(0, 0, 1, 1),
-                               size_hint_y=(0.5, 0.5))
-        letter_button.bind(on_press=self.letter_button_press)
-        box.add_widget(letter_button)
+        # letter_button = Button(text='',
+        #                        background_color=(0, 0, 1, 1),
+        #                        size_hint_y=(0.5, 0.5))
+        # letter_button.bind(on_press=self.letter_button_press)
+        # box.add_widget(letter_button)
         start_timer_button = Button(text='Start',
                                     background_color=(0, 0, 1, 1),
                                     size_hint_y=(0.5, 0.5))
         start_timer_button.bind(on_press=self.start_timer_button_press)
         box.add_widget(start_timer_button)
-        self.timer_label = t_label = Label(text='01:00:00',
+        self.timer_label = t_label = Label(text='00:01:00',
                                            size_hint_y=(0.5, 0.5))
         box.add_widget(t_label)
         return box
